@@ -1,0 +1,6 @@
+{
+  "name": "Richyonce Haute Atelier",
+  "description": "Contemporary African Luxury & Bespoke Haute Couture Atelier. Tailored regalia, royal agbada, isiagu tunics, and sovereign ceremonial couture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
