@@ -58,6 +58,14 @@ export interface BespokeConfig {
   specialRequests: string;
 }
 
+export interface CommissionStage {
+  title: string;
+  desc: string;
+  completed: boolean;
+  current?: boolean;
+  hoursLogged?: number;
+}
+
 export interface CommissionOrder {
   orderId: string;
   clientName: string;
@@ -72,13 +80,7 @@ export interface CommissionOrder {
   trackingCode: string;
   destinationCity: string;
   totalAmount: string;
-  stages: {
-    title: string;
-    desc: string;
-    completed: boolean;
-    current?: boolean;
-    hoursLogged?: number;
-  }[];
+  stages: CommissionStage[];
 }
 
 export type TabType = 'home' | 'ascent' | 'bespoke' | 'track' | 'atelier-admin';

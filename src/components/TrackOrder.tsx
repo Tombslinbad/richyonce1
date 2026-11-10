@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CommissionOrder } from '../types';
+import { ArtisanStageTimelineD3 } from './ArtisanStageTimelineD3';
 
 interface TrackOrderProps {
   orders: CommissionOrder[];
@@ -14,6 +15,7 @@ export const TrackOrder: React.FC<TrackOrderProps> = ({ orders }) => {
   const [showArtisanPhotos, setShowArtisanPhotos] = useState(false);
   const [conciergeMsgSent, setConciergeMsgSent] = useState(false);
   const [conciergeText, setConciergeText] = useState('');
+  const [spotlightStageIdx, setSpotlightStageIdx] = useState<number | null>(null);
 
   const currentOrder =
     orders.find((o) => o.orderId.toLowerCase() === selectedOrderId.toLowerCase()) || orders[0];
@@ -129,29 +131,57 @@ export const TrackOrder: React.FC<TrackOrderProps> = ({ orders }) => {
               </div>
             </div>
 
-            {/* Progress Bar */}
-            <div className="mt-5">
-              <div className="w-full h-2 bg-[#0e0e0e] overflow-hidden border border-[rgba(255,255,255,0.06)]">
-                <div
-                  className="h-full bg-gradient-to-r from-[#e5c07b] to-[#ffdd9f] transition-all duration-700"
-                  style={{ width: `${currentOrder.progressPercent}%` }}
-                ></div>
-              </div>
+            {/* Interactive D3 Visual Progress Timeline (Replacing static progress bar) */}
+            <div className="mt-6">
+              <ArtisanStageTimelineD3
+                stages={currentOrder.stages}
+                progressPercent={currentOrder.progressPercent}
+                totalHours={currentOrder.totalHours}
+                currentStageHours={currentOrder.currentStageHours}
+                selectedStageIndex={spotlightStageIdx ?? undefined}
+                onSelectStage={(idx) => {
+                  setSpotlightStageIdx(idx);
+                  const el = document.getElementById(`order-stage-card-${idx}`);
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }
+                }}
+              />
             </div>
 
             {/* Stage Timeline */}
-            <div className="mt-8 space-y-4">
-              {currentOrder.stages.map((stg, i) => (
-                <div
-                  key={i}
-                  className={`p-4 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                    stg.completed
-                      ? 'bg-[#112520]/40 border-[rgba(229,192,123,0.3)]'
-                      : stg.current
-                      ? 'bg-[#201f1f] border-[#e5c07b] shadow-lg ring-1 ring-[#e5c07b]'
-                      : 'bg-[#131313]/50 border-[rgba(255,255,255,0.04)] opacity-60'
-                  }`}
-                >
+            <div className="mt-8 space-y-3">
+              <div className="flex items-center justify-between pb-1 border-b border-[rgba(255,255,255,0.06)]">
+                <span className="text-[10px] uppercase font-semibold text-[#ffdd9f] tracking-[0.2em]">
+                  Artisan Guild Sequence Stages ({currentOrder.stages.length} Milestones)
+                </span>
+                {spotlightStageIdx !== null && (
+                  <button
+                    onClick={() => setSpotlightStageIdx(null)}
+                    className="text-[10px] text-[#ffdd9f] hover:underline uppercase tracking-wider font-mono flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Clear Stage Filter</span>
+                    <span className="material-symbols-outlined text-[13px]">close</span>
+                  </button>
+                )}
+              </div>
+              {currentOrder.stages.map((stg, i) => {
+                const isSpotlighted = spotlightStageIdx === i;
+                return (
+                  <div
+                    key={i}
+                    id={`order-stage-card-${i}`}
+                    onClick={() => setSpotlightStageIdx(spotlightStageIdx === i ? null : i)}
+                    className={`p-4 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer ${
+                      isSpotlighted
+                        ? 'border-[#ffdd9f] bg-[#112520] ring-2 ring-[#ffdd9f] shadow-2xl scale-[1.01]'
+                        : stg.completed
+                        ? 'bg-[#112520]/40 border-[rgba(229,192,123,0.3)] hover:border-[rgba(229,192,123,0.6)]'
+                        : stg.current
+                        ? 'bg-[#201f1f] border-[#e5c07b] shadow-lg ring-1 ring-[#e5c07b]'
+                        : 'bg-[#131313]/50 border-[rgba(255,255,255,0.04)] opacity-60 hover:opacity-90'
+                    }`}
+                  >
                   <div className="flex items-start gap-3">
                     <div
                       className={`w-7 h-7 flex items-center justify-center flex-shrink-0 mt-0.5 ${
@@ -190,8 +220,9 @@ export const TrackOrder: React.FC<TrackOrderProps> = ({ orders }) => {
                     </span>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
+          </div>
 
             {/* Quick Actions Bar */}
             <div className="mt-8 pt-5 border-t border-[rgba(255,255,255,0.08)] flex flex-wrap items-center justify-between gap-3">
